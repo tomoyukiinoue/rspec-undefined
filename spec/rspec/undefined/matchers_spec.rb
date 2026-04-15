@@ -188,13 +188,15 @@ RSpec.describe "RSpec::Undefined::Matchers (category)" do
     expect(registry.all.first.category).to be_nil
   end
 
-  it "be_undefined は文字列カスタム分類を受け付ける" do
-    be_undefined("マイ独自分類").matches?(42)
-    expect(registry.all.first.category).to eq("マイ独自分類")
+  it "be_undefined は String を受け取ると ArgumentError" do
+    expect { be_undefined("str") }.to raise_error(ArgumentError, /Symbol/)
   end
 
-  it "match_undefined_order は文字列カスタム分類を受け付ける" do
-    match_undefined_order([1, 2], "DBの並び順未定").matches?([2, 1])
-    expect(registry.all.first.category).to eq("DBの並び順未定")
+  it "match_undefined_order は String を受け取ると ArgumentError" do
+    expect { match_undefined_order([1, 2], "str") }.to raise_error(ArgumentError, /Symbol/)
+  end
+
+  it "undefined_value_of は String を受け取ると ArgumentError" do
+    expect { undefined_value_of(eq(3), "str") }.to raise_error(ArgumentError, /Symbol/)
   end
 end

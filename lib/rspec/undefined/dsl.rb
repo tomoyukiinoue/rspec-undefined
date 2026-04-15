@@ -7,6 +7,11 @@ module RSpec
   module Undefined
     module DSL
       def undefined(description, category: nil, &block)
+        unless category.nil? || category.is_a?(Symbol)
+          raise ArgumentError,
+                "category は Symbol で指定してください（受け取った値: #{category.inspect}）。" \
+                "カスタムカテゴリは RSpec::Undefined::Categories.register で事前登録してください。"
+        end
         loc = caller_locations(1, 1).first
         location = loc ? "#{loc.path}:#{loc.lineno}" : nil
         example("[undefined] #{description}", undefined: true, undefined_category: category) do

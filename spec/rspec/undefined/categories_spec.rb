@@ -22,9 +22,13 @@ RSpec.describe RSpec::Undefined::Categories do
       expect(described_class.registered).to include(:custom_a, :custom_b)
     end
 
-    it "String も登録できる" do
-      described_class.register("特殊ケース")
-      expect(described_class.registered).to include("特殊ケース")
+    it "String は ArgumentError" do
+      expect { described_class.register("str") }.to raise_error(ArgumentError, /Symbol/)
+    end
+
+    it "一部が invalid ならすべて登録されない" do
+      expect { described_class.register(:ok, "ng") }.to raise_error(ArgumentError)
+      expect(described_class.registered).not_to include(:ok)
     end
 
     it "重複登録は無視される" do

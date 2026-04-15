@@ -10,6 +10,7 @@ module RSpec
         attr_reader :matcher_name, :actual, :expected_recorded, :category
 
         def initialize(matcher_name, category = nil)
+          validate_category!(category)
           @matcher_name = matcher_name
           @expected_recorded = :__any__
           @category = category
@@ -40,6 +41,13 @@ module RSpec
         end
 
         private
+
+        def validate_category!(category)
+          return if category.nil? || category.is_a?(Symbol)
+          raise ArgumentError,
+                "category は Symbol で指定してください（受け取った値: #{category.inspect}）。" \
+                "カスタムカテゴリは RSpec::Undefined::Categories.register で事前登録してください。"
+        end
 
         def evaluate(_actual)
           true

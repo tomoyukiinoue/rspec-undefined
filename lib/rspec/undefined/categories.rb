@@ -23,6 +23,12 @@ module RSpec
       @mutex = Mutex.new
 
       def self.register(*names)
+        names.each do |n|
+          unless n.is_a?(Symbol)
+            raise ArgumentError,
+                  "category は Symbol で指定してください（受け取った値: #{n.inspect}）"
+          end
+        end
         @mutex.synchronize do
           names.each do |n|
             @registered << n unless @registered.include?(n) || STANDARD.include?(n)

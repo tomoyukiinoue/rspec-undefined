@@ -42,11 +42,20 @@ RSpec.describe "RSpec::Undefined::DSL" do
       src = <<~RUBY
         RSpec.describe "X" do
           undefined "状態遷移", category: :state_transition
-          undefined "独自観点",  category: "カスタム"
         end
       RUBY
       _out, _err, status = run_spec_source(src)
       expect(status.exitstatus).to eq(0)
+    end
+
+    it "undefined に String category を渡すと ArgumentError" do
+      src = <<~RUBY
+        RSpec.describe "X" do
+          undefined "説明", category: "str"
+        end
+      RUBY
+      _out, _err, status = run_spec_source(src)
+      expect(status.exitstatus).to_not eq(0)
     end
 
     it "strict モードでは undefined 宣言が fail する" do
