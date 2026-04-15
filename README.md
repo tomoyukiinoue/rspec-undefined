@@ -23,11 +23,14 @@ require "rspec/undefined"
 ### マッチャ
 
 ```ruby
-expect(value).to be_undefined
-expect(value).to be_undefined(:boundary)
-expect(users.map(&:id)).to be_undefined(:order, expected: match_array([1, 2, 3]))
-expect(value).to be_undefined(eq(3), :rounding)
+expect(value).to be_undefined                                   # カテゴリなし
+expect(value).to be_undefined(:boundary)                        # カテゴリのみ
+expect(total).to be_undefined(:boundary, expected: 100)         # 暫定仕様の期待値（== 比較）
+expect(users.map(&:id)).to be_undefined(:order, expected: match_array([1, 2, 3])) # Matcher 評価
+expect(value).to be_undefined(eq(3), :rounding)                 # 内側マッチャ + カテゴリ
 ```
+
+`expected:` キーワードに生値を渡すと `==` で比較され、RSpec マッチャを渡すと `matches?` で評価されます。値は記録だけされ（通常モードでは常に pass）、レポートで現状値とのズレを確認できます。
 
 ### example 宣言
 
