@@ -1,39 +1,110 @@
-# Rspec::Undefined
+# rspec-undefined
 
-TODO: Delete this and the text below, and describe your gem
+「仕様が未確定である」ことをテスト内で明示的に表現する RSpec 拡張です。
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/rspec/undefined`. To experiment with that code, run `bin/console` for an interactive prompt.
+レガシーシステムから現行踏襲の仕様書を起こす作業で、「仕様が決まっていないのでテストが書けない」という問題を、「未確定であることをテストに書いて切り出す」ことで解決します。
 
-## Installation
+## インストール
 
-TODO: Replace `UPDATE_WITH_YOUR_GEM_NAME_IMMEDIATELY_AFTER_RELEASE_TO_RUBYGEMS_ORG` with your gem name right after releasing it to RubyGems.org. Please do not do it earlier due to security reasons. Alternatively, replace this section with instructions to install your gem from git if you don't plan to release to RubyGems.org.
+Gemfile に以下を追加してください。
 
-Install the gem and add to the application's Gemfile by executing:
-
-```bash
-bundle add UPDATE_WITH_YOUR_GEM_NAME_IMMEDIATELY_AFTER_RELEASE_TO_RUBYGEMS_ORG
+```ruby
+gem "rspec-undefined", git: "https://github.com/tomoyukiinoue/rspec-undefined.git"
 ```
 
-If bundler is not being used to manage dependencies, install the gem by executing:
+## 使い方
 
-```bash
-gem install UPDATE_WITH_YOUR_GEM_NAME_IMMEDIATELY_AFTER_RELEASE_TO_RUBYGEMS_ORG
+`spec/spec_helper.rb` で require します。
+
+```ruby
+require "rspec/undefined"
 ```
 
-## Usage
+### マッチャ
 
-TODO: Write usage instructions here
+```ruby
+expect(value).to be_undefined
+expect(value).to be_undefined(:boundary)
+expect(users.map(&:id)).to be_undefined(:order, expected: match_array([1, 2, 3]))
+expect(value).to be_undefined(eq(3), :rounding)
+```
 
-## Development
+### example 宣言
 
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
+```ruby
+undefined "削除時の順序は未確定"
+undefined "キャンセル後の再操作", category: :state_transition
+undefined "検証内容あり" do
+  expect(something).to eq(42)
+end
+```
 
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and the created tag, and push the `.gem` file to [rubygems.org](https://rubygems.org).
+### 厳格モード
 
-## Contributing
+環境変数 `RSPEC_UNDEFINED_STRICT=1` を付けると、undefined を使ったすべての example が fail します。
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/rspec-undefined.
+## 出力例
 
-## License
+テスト実行末尾に次のような要約が出力されます。
 
-The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).
+```
+Undefined spec items:
+  1) [matcher] {boundary} be_undefined expected=:__any__ actual=100 matched=true (spec/user_spec.rb:12)
+  2) [declaration] {deletion} 削除時の挙動は未確定 (spec/user_spec.rb:30)
+
+undefined: 2
+by category:
+  boundary: 1
+  deletion: 1
+```
+
+## カテゴリ
+
+「仕様考慮漏れ」の類型を Symbol カテゴリとして指定できます。標準カテゴリは 13 種類:
+
+`:boundary`, `:nil_or_empty`, `:uniqueness`, `:order`, `:datetime`, `:encoding`, `:rounding`, `:permission`, `:state_transition`, `:concurrency`, `:deletion`, `:retroactive`, `:idempotency`
+
+プロジェクト固有のカテゴリは `register_categories` で追加できます:
+
+```ruby
+RSpec::Undefined.configure do |c|
+  c.register_categories :invoice_rounding, :legacy_auth
+end
+
+expect(total).to be_undefined(:invoice_rounding, expected: 1000)
+```
+
+未登録の Symbol を渡すと Formatter で `*` マーカー付きで表示され、登録忘れに気付けます。
+
+## 設定
+
+```ruby
+RSpec::Undefined.configure do |c|
+  c.report_path   = "tmp/undefined.json"
+  c.report_format = :json                 # :json | :yaml | :csv | :markdown
+  c.register_categories :my_cat
+end
+```
+
+## strict モードと DSL の関係
+
+`RSPEC_UNDEFINED_STRICT=1` を有効にすると以下の箇所が example 失敗になります:
+
+- `be_undefined`（すべての形式）を呼んだ example
+- `undefined "..."` / `undefined "...", category: :sym` で宣言した example（ブロック有無にかかわらず）
+
+strict モード時、`undefined` DSL の**ブロックは実行されず、即座に fail します**。ブロック内の補助検証は通常モードでのみ走ります。
+
+## require の副作用について
+
+`require "rspec/undefined"` を実行すると、`RSpec.configure` の `before(:suite)` / `after(:suite)` フックが登録され、`RSpec::Matchers` に `be_undefined` がミックスインされます。別のテスト環境で有効化したくない場合は require の場所を制限してください（`spec/spec_helper.rb` 限定 等）。
+
+## 推奨運用
+
+1. レガシー仕様書の起こし作業中は通常モードで未確定を貯める
+2. 定期的にレポートを見て仕様確定を進める
+3. ほぼ確定したら CI で `RSPEC_UNDEFINED_STRICT=1` を有効にし、新規の未確定混入を防ぐ
+
+## ライセンス
+
+MIT
