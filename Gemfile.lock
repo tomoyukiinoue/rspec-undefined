@@ -2,7 +2,7 @@ PATH
   remote: .
   specs:
     rspec-undefined (0.1.0)
-      csv
+      csv (>= 3.0)
       rspec-core (>= 3.0, < 4)
 
 GEM
