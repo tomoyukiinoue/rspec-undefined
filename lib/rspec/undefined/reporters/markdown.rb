@@ -9,7 +9,7 @@ module RSpec
           __nil_or_empty__: "__nil_or_empty__"
         }.freeze
 
-        HEADERS = %w[# kind matcher category description expected actual matched location].freeze
+        HEADERS = %w[No. kind matcher category description expected actual matched location].freeze
 
         def initialize(path, stderr: $stderr)
           @path = path

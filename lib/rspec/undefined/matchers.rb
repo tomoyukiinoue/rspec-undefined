@@ -7,6 +7,8 @@ module RSpec
   module Undefined
     module Matchers
       class BeUndefined
+        LOCATION_SEARCH_DEPTH = 20
+
         attr_reader :matcher_name, :actual, :expected_recorded, :category
 
         # kwarg: :expected_provided で「キーワードが明示された」を示す（nil 期待値との区別）
@@ -92,7 +94,7 @@ module RSpec
         end
 
         def location_summary
-          frame = caller_locations(1, 20).find { |l| l.path !~ /lib\/rspec\/undefined/ }
+          frame = caller_locations(1, LOCATION_SEARCH_DEPTH).find { |l| l.path !~ /lib\/rspec\/undefined/ }
           frame ? "#{frame.path}:#{frame.lineno}" : nil
         end
 
