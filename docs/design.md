@@ -28,12 +28,16 @@
 
 ### 3.1 マッチャ
 
-| マッチャ | 用途 |
+マッチャは `be_undefined` 一本に統一する。第 1 引数で `Symbol` カテゴリ／内側マッチャ／無指定を切り替える。
+
+| 呼び出し | 意味 |
 |---|---|
-| `be_undefined` | 値が何であってもよい（値自体が不定） |
-| `be_undefined_nil_or_empty` | `nil` か「空」のいずれかが期待される（どちらが正かが不定） |
-| `match_undefined_order(expected)` | 要素集合は期待値と一致するが順序が不定 |
-| `undefined_value_of(inner_matcher)` | 任意のマッチャを「不定」として包むラッパー |
+| `be_undefined` | 値自体が不定。カテゴリなし |
+| `be_undefined(:order)` | カテゴリのみ指定 |
+| `be_undefined(eq(3))` | 内側マッチャで評価（カテゴリなし） |
+| `be_undefined(eq(3), :rounding)` | 内側マッチャ + カテゴリ |
+
+第 1 引数の型で判別: `Symbol` はカテゴリ、`matches?` に応答するオブジェクトは内側マッチャ、`nil` は何もなし。カテゴリと内側マッチャを両方指定する場合は `be_undefined(matcher, :category)` の順。
 
 ### 3.2 DSL（example レベルの宣言）
 
@@ -56,6 +60,38 @@ end
 - `ENV["RSPEC_UNDEFINED_STRICT"]` が `"1" | "true" | "yes"` のとき有効
 - **有効時: undefined を使った全箇所を example 失敗にする**
 - CI では strict、ローカル開発では寛容、のような切り替え運用を想定
+
+### 3.5 カテゴリ（仕様考慮漏れの類型）
+
+マッチャと DSL はオプションの **カテゴリ定数**（Symbol）を受け取れる。カテゴリは記録のみに使われ（挙動を変えない）、レポートで集計・分類される。利用者は任意のシンボルを渡せるが、標準カテゴリを以下に定義する。
+
+| カテゴリ | 対象例 |
+|---|---|
+| `:boundary` | 上限/下限・最大件数・桁数・文字数・期間 |
+| `:nil_or_empty` | 0 件・null・空文字・未入力 |
+| `:uniqueness` | 一意制約・同名登録・同時登録 |
+| `:order` | 並び順・ソート規則 |
+| `:datetime` | 日時・タイムゾーン・和暦/西暦・うるう年/秒 |
+| `:encoding` | 文字コード・絵文字・サロゲートペア・半角/全角 |
+| `:rounding` | 金額丸め（四捨五入/銀行丸め）・通貨・税計算順序 |
+| `:permission` | 権限境界（閲覧/編集/削除・代理操作） |
+| `:state_transition` | 状態遷移（キャンセル後再操作・途中離脱・タイムアウト復帰） |
+| `:concurrency` | 楽観/悲観ロック・同時編集コンフリクト |
+| `:deletion` | 物理削除 vs 論理削除・削除済み参照 |
+| `:retroactive` | マスタ変更遡及（過去データ表示は旧値か新値か） |
+| `:idempotency` | 外部連携（リトライ・重複実行防止） |
+
+定数集は `RSpec::Undefined::Categories::STANDARD`（配列）として公開。**カテゴリは `Symbol` のみを受理する**（表記ゆれ・集計困難を避けるため）。プロジェクト固有の分類は事前に **登録** してから使う:
+
+```ruby
+RSpec::Undefined.configure do |c|
+  c.register_categories :invoice_rounding, :legacy_auth
+end
+# または
+RSpec::Undefined::Categories.register(:invoice_rounding)
+```
+
+登録された値は `Categories.all` (= `STANDARD + registered`) に含まれる。`Categories.known?(v)` で判定できる。`Symbol` 以外（`String` 等）を category 引数に渡した場合は `ArgumentError` を raise。Formatter は集計時に未登録（`!known?`）のカテゴリ名に `*` マーカーを付けて表示し、`register` 忘れに気付けるようにする。
 
 ## 4. アーキテクチャ
 
@@ -102,6 +138,7 @@ Entry = Struct.new(
   :kind,         # :matcher | :declaration
   :matcher,      # "be_undefined" 等。declaration のときは nil
   :description,  # 宣言文字列（任意）
+  :category,     # カテゴリ Symbol（:boundary, :timezone 等）。未指定は nil
   :expected,     # 期待値（なければセンチネル :__any__ や :__nil_or_empty__）
   :actual,       # 実値（declaration のときは nil）
   :matched,      # true / false / nil（内部評価の結果）
@@ -121,12 +158,24 @@ Entry = Struct.new(
 
 ## 6. マッチャ仕様
 
-| マッチャ | expected 記録 | actual 記録 | matched の評価 |
+| 呼び出し | expected 記録 | actual 記録 | matched の評価 |
 |---|---|---|---|
 | `be_undefined` | `:__any__` | 実値 | 常に true |
-| `be_undefined_nil_or_empty` | `:__nil_or_empty__` | 実値 | 実値が `nil` か `empty?` なら true、それ以外は false |
-| `match_undefined_order(expected)` | 期待配列 | 実配列 | `expected.sort == actual.sort`。比較不能なら nil |
-| `undefined_value_of(inner)` | `inner.description` | 実値 | `inner.matches?(actual)` |
+| `be_undefined(:cat)` | `:__any__` | 実値 | 常に true（category=:cat） |
+| `be_undefined(inner)` | `inner.description` | 実値 | `inner.matches?(actual)` |
+| `be_undefined(inner, :cat)` | `inner.description` | 実値 | `inner.matches?(actual)` |
+
+カテゴリは `Symbol` のみ受理。`String` 等は `ArgumentError`。
+
+使用例:
+
+```ruby
+expect(x).to be_undefined                      # カテゴリなし
+expect(x).to be_undefined(:boundary)           # 標準カテゴリ
+expect(x).to be_undefined(:invoice_rounding)   # 事前登録したカスタムカテゴリ
+expect(users.map(&:id)).to be_undefined(match_array([1,2,3]), :order)
+expect(x).to be_undefined(eq(3), :rounding)
+```
 
 共通仕様:
 
@@ -137,9 +186,14 @@ Entry = Struct.new(
 ## 7. DSL 仕様
 
 ```ruby
-undefined "削除時の順序は未確定"        # ブロックなし
-undefined "..." do ... end              # ブロックあり
+undefined "削除時の順序は未確定"                                  # カテゴリなし
+undefined "キャンセル後の再操作未定", category: :state_transition  # 標準カテゴリ
+undefined "独自観点", category: "マイ分類"                        # カスタム文字列カテゴリ
+undefined "..." do ... end                                         # ブロック
+undefined "冪等性", category: :idempotency do ... end             # カテゴリ + ブロック
 ```
+
+シグネチャは `undefined(description, category: nil, &block)`。第 1 引数は常に説明（String）。カテゴリは `category:` キーワード引数で指定し、`Symbol` / `String` どちらも受ける。
 
 - `ExampleGroup.undefined(desc, &block)` として注入
 - 内部で `example(desc, :undefined) { ... }` 相当を生成

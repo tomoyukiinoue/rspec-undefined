@@ -967,6 +967,209 @@ git commit -m "feat: undefined_value_of マッチャを追加"
 
 ---
 
+## Task 8.5: カテゴリ対応
+
+**目的:** すべての undefined 系記録に「仕様考慮漏れの類型」を示す Symbol カテゴリを付与できるようにする。挙動は変えず、記録とレポートのみに影響。
+
+**Files:**
+- Create: `lib/rspec/undefined/categories.rb`
+- Modify: `lib/rspec/undefined/entry.rb`（`:category` 属性を追加）
+- Modify: `lib/rspec/undefined/matchers.rb`（全マッチャでカテゴリ受付）
+- Modify: `spec/rspec/undefined/entry_spec.rb`（category 属性の確認追加）
+- Modify: `spec/rspec/undefined/matchers_spec.rb`（カテゴリ付きのテスト追加）
+
+### Step 1: Categories 定数を追加
+
+`lib/rspec/undefined/categories.rb`:
+
+```ruby
+# frozen_string_literal: true
+
+module RSpec
+  module Undefined
+    module Categories
+      STANDARD = [
+        :boundary,
+        :nil_or_empty,
+        :uniqueness,
+        :order,
+        :datetime,
+        :encoding,
+        :rounding,
+        :permission,
+        :state_transition,
+        :concurrency,
+        :deletion,
+        :retroactive,
+        :idempotency
+      ].freeze
+    end
+  end
+end
+```
+
+### Step 2: Entry に `:category` 属性を追加
+
+`lib/rspec/undefined/entry.rb` の `ATTRS` に `:category` を追加:
+
+```ruby
+ATTRS = [:kind, :matcher, :description, :category, :expected, :actual,
+         :matched, :location, :example_id].freeze
+```
+
+`spec/rspec/undefined/entry_spec.rb` に以下を追加:
+
+```ruby
+it "category 属性を受け取る" do
+  entry = described_class.new(kind: :matcher, category: :boundary)
+  expect(entry.category).to eq(:boundary)
+  expect(entry.to_h[:category]).to eq(:boundary)
+end
+
+it "category 未指定時は nil" do
+  entry = described_class.new(kind: :declaration)
+  expect(entry.category).to be_nil
+end
+```
+
+### Step 3: BaseMatcher とファクトリをカテゴリ対応に
+
+`lib/rspec/undefined/matchers.rb` の `BaseMatcher` を修正:
+
+```ruby
+class BaseMatcher
+  attr_reader :matcher_name, :actual, :expected_recorded, :category
+
+  def initialize(matcher_name, category: nil)
+    @matcher_name = matcher_name
+    @expected_recorded = :__any__
+    @category = category
+  end
+
+  # ... matches?, failure_message 等は既存のまま ...
+
+  private
+
+  def record(matched)
+    RSpec::Undefined.registry.add(
+      RSpec::Undefined::Entry.new(
+        kind: :matcher,
+        matcher: matcher_name,
+        category: @category,
+        expected: @expected_recorded,
+        actual: @actual,
+        matched: matched,
+        location: location_summary,
+        example_id: current_example_id
+      )
+    )
+  end
+  # ...
+end
+```
+
+各マッチャ:
+
+```ruby
+class BeUndefined < BaseMatcher
+  def initialize(category = nil)
+    super("be_undefined", category: category)
+  end
+end
+
+class BeUndefinedNilOrEmpty < BaseMatcher
+  def initialize(category = nil)
+    super("be_undefined_nil_or_empty", category: category || :nil_or_empty)
+    @expected_recorded = :__nil_or_empty__
+  end
+  # ...
+end
+
+class MatchUndefinedOrder < BaseMatcher
+  def initialize(expected, category = :order)
+    super("match_undefined_order", category)
+    @expected = expected
+    @expected_recorded = expected
+  end
+  # ...
+end
+
+class UndefinedValueOf < BaseMatcher
+  def initialize(inner, category = nil)
+    super("undefined_value_of", category)
+    @inner = inner
+    @expected_recorded = describe_inner(inner)
+  end
+  # ...
+end
+
+def be_undefined(category = nil)
+  BeUndefined.new(category)
+end
+
+def be_undefined_nil_or_empty(category = nil)
+  BeUndefinedNilOrEmpty.new(category)
+end
+
+def match_undefined_order(expected, category = :order)
+  MatchUndefinedOrder.new(expected, category)
+end
+
+def undefined_value_of(inner, category = nil)
+  UndefinedValueOf.new(inner, category)
+end
+```
+
+※ `BaseMatcher#initialize` も `def initialize(matcher_name, category = nil)` の **位置引数** に揃える。`Symbol` / `String` どちらも category として受理する（型チェックなし）。
+
+### Step 4: テストを追加
+
+`spec/rspec/undefined/matchers_spec.rb` にカテゴリ付きの例を数例追加:
+
+```ruby
+it "be_undefined にカテゴリを渡すと Entry に記録される" do
+  be_undefined(:boundary).matches?(100)
+  expect(registry.all.first.category).to eq(:boundary)
+end
+
+it "be_undefined_nil_or_empty の既定カテゴリは :nil_or_empty" do
+  be_undefined_nil_or_empty.matches?(nil)
+  expect(registry.all.first.category).to eq(:nil_or_empty)
+end
+
+it "match_undefined_order の既定カテゴリは :order" do
+  match_undefined_order([1,2]).matches?([2,1])
+  expect(registry.all.first.category).to eq(:order)
+end
+
+it "match_undefined_order はカテゴリを上書きできる" do
+  match_undefined_order([1,2], category: :deletion).matches?([1,2])
+  expect(registry.all.first.category).to eq(:deletion)
+end
+```
+
+### Step 5: エントリポイントで Categories を require
+
+`lib/rspec/undefined.rb` は Task 13 で書き換える予定だが、Categories の require をそちらに仕込む。今は matchers.rb の冒頭に以下を入れておく:
+
+```ruby
+require "rspec/undefined/categories"
+```
+
+### Step 6: テスト通過を確認
+
+Run: `bundle exec rspec spec/rspec/undefined/entry_spec.rb spec/rspec/undefined/matchers_spec.rb`
+全 PASS を確認。
+
+### Step 7: コミット
+
+```bash
+git add lib/rspec/undefined/categories.rb lib/rspec/undefined/entry.rb lib/rspec/undefined/matchers.rb spec/rspec/undefined/entry_spec.rb spec/rspec/undefined/matchers_spec.rb
+git commit -m "feat: マッチャと Entry にカテゴリ対応を追加"
+```
+
+---
+
 ## Task 9: DSL (`undefined "..."`)
 
 **Files:**
@@ -1071,14 +1274,15 @@ require "rspec/undefined/entry"
 module RSpec
   module Undefined
     module DSL
-      def undefined(description, &block)
+      def undefined(description, category: nil, &block)
         loc = caller_locations(1, 1).first
         location = loc ? "#{loc.path}:#{loc.lineno}" : nil
-        example("[undefined] #{description}", undefined: true) do
+        example("[undefined] #{description}", undefined: true, undefined_category: category) do
           RSpec::Undefined.registry.add(
             RSpec::Undefined::Entry.new(
               kind: :declaration,
               description: description,
+              category: category,
               location: location,
               example_id: RSpec.current_example && RSpec.current_example.id
             )
