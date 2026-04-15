@@ -1,39 +1,47 @@
-# Rspec::Undefined
+# rspec-undefined
 
-TODO: Delete this and the text below, and describe your gem
+「仕様が未確定である」ことをテスト内で明示的に表現する RSpec 拡張です。
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/rspec/undefined`. To experiment with that code, run `bin/console` for an interactive prompt.
+レガシーシステムから現行踏襲の仕様書を起こす作業で、「仕様が決まっていないのでテストが書けない」という問題を、「未確定であることをテストに書いて切り出す」ことで解決します。
 
-## Installation
+## インストール
 
-TODO: Replace `UPDATE_WITH_YOUR_GEM_NAME_IMMEDIATELY_AFTER_RELEASE_TO_RUBYGEMS_ORG` with your gem name right after releasing it to RubyGems.org. Please do not do it earlier due to security reasons. Alternatively, replace this section with instructions to install your gem from git if you don't plan to release to RubyGems.org.
+Gemfile に以下を追加してください。
 
-Install the gem and add to the application's Gemfile by executing:
-
-```bash
-bundle add UPDATE_WITH_YOUR_GEM_NAME_IMMEDIATELY_AFTER_RELEASE_TO_RUBYGEMS_ORG
+```ruby
+gem "rspec-undefined", git: "https://github.com/tomoyukiinoue/rspec-undefined.git"
 ```
 
-If bundler is not being used to manage dependencies, install the gem by executing:
+## 使い方
 
-```bash
-gem install UPDATE_WITH_YOUR_GEM_NAME_IMMEDIATELY_AFTER_RELEASE_TO_RUBYGEMS_ORG
+`spec/spec_helper.rb` で require します。
+
+```ruby
+require "rspec/undefined"
 ```
 
-## Usage
+### マッチャ
 
-TODO: Write usage instructions here
+```ruby
+expect(value).to be_undefined
+expect(value).to be_undefined_nil_or_empty
+expect(users.map(&:id)).to match_undefined_order([1, 2, 3])
+expect(value).to undefined_value_of(eq(3))
+```
 
-## Development
+### example 宣言
 
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
+```ruby
+undefined "削除時の順序は未確定"
+undefined "検証内容あり" do
+  expect(something).to eq(42)
+end
+```
 
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and the created tag, and push the `.gem` file to [rubygems.org](https://rubygems.org).
+### 厳格モード
 
-## Contributing
+環境変数 `RSPEC_UNDEFINED_STRICT=1` を付けると、undefined を使ったすべての example が fail します。
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/rspec-undefined.
+## ライセンス
 
-## License
-
-The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).
+MIT
