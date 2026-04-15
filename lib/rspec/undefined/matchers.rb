@@ -1,19 +1,19 @@
 # frozen_string_literal: true
 
-require "rspec/undefined/entry"
 require "rspec/undefined/categories"
+require "rspec/undefined/entry"
 
 module RSpec
   module Undefined
     module Matchers
-      class BaseMatcher
+      class BeUndefined
         attr_reader :matcher_name, :actual, :expected_recorded, :category
 
-        def initialize(matcher_name, category = nil)
-          validate_category!(category)
-          @matcher_name = matcher_name
-          @expected_recorded = :__any__
+        def initialize(inner = nil, category = nil)
+          @matcher_name = "be_undefined"
+          @inner = inner
           @category = category
+          @expected_recorded = inner ? describe_inner(inner) : :__any__
         end
 
         def matches?(actual)
@@ -29,28 +29,31 @@ module RSpec
         end
 
         def failure_message
-          "undefined[#{matcher_name}] at #{location_summary}: expected=#{@expected_recorded.inspect} actual=#{@actual.inspect}"
+          "undefined[#{matcher_name}] at #{location_summary}: " \
+            "category=#{category.inspect} expected=#{@expected_recorded.inspect} actual=#{@actual.inspect}"
         end
 
         def failure_message_when_negated
-          "undefined matcher (#{matcher_name}) は否定形では使えません"
+          "undefined matcher は否定形では使えません"
         end
 
         def description
-          "は未確定仕様 (#{matcher_name}) である"
+          suffix = category ? " [#{category}]" : ""
+          "は未確定仕様#{suffix}である"
         end
 
         private
 
-        def validate_category!(category)
-          return if category.nil? || category.is_a?(Symbol)
-          raise ArgumentError,
-                "category は Symbol で指定してください（受け取った値: #{category.inspect}）。" \
-                "カスタムカテゴリは RSpec::Undefined::Categories.register で事前登録してください。"
+        def evaluate(actual)
+          @inner ? !!@inner.matches?(actual) : true
         end
 
-        def evaluate(_actual)
-          true
+        def describe_inner(inner)
+          if inner.respond_to?(:description)
+            inner.description
+          else
+            inner.class.name
+          end
         end
 
         def record(matched)
@@ -79,83 +82,33 @@ module RSpec
         end
       end
 
-      class BeUndefined < BaseMatcher
-        def initialize(category = nil)
-          super("be_undefined", category)
-        end
-      end
+      def be_undefined(arg1 = nil, category = nil)
+        inner_arg = nil
+        cat_arg = nil
 
-      class BeUndefinedNilOrEmpty < BaseMatcher
-        def initialize(category = nil)
-          super("be_undefined_nil_or_empty", category || :nil_or_empty)
-          @expected_recorded = :__nil_or_empty__
-        end
-
-        private
-
-        def evaluate(actual)
-          return true if actual.nil?
-          return actual.empty? if actual.respond_to?(:empty?)
-          false
-        end
-      end
-
-      def be_undefined(category = nil)
-        BeUndefined.new(category)
-      end
-
-      def be_undefined_nil_or_empty(category = nil)
-        BeUndefinedNilOrEmpty.new(category)
-      end
-
-      class MatchUndefinedOrder < BaseMatcher
-        def initialize(expected, category = :order)
-          super("match_undefined_order", category)
-          @expected = expected
-          @expected_recorded = expected
-        end
-
-        private
-
-        def evaluate(actual)
-          return false unless actual.is_a?(Array) && @expected.is_a?(Array)
-          return false if actual.size != @expected.size
-          begin
-            @expected.sort == actual.sort
-          rescue ArgumentError, TypeError
-            nil
+        if arg1.nil?
+          # no-op
+        elsif arg1.is_a?(Symbol)
+          if !category.nil?
+            raise ArgumentError,
+                  "be_undefined: 第1引数がカテゴリ Symbol のとき、第2引数は指定できません"
           end
-        end
-      end
-
-      def match_undefined_order(expected, category = :order)
-        MatchUndefinedOrder.new(expected, category)
-      end
-
-      class UndefinedValueOf < BaseMatcher
-        def initialize(inner, category = nil)
-          super("undefined_value_of", category)
-          @inner = inner
-          @expected_recorded = describe_inner(inner)
+          cat_arg = arg1
+        elsif arg1.respond_to?(:matches?)
+          inner_arg = arg1
+          cat_arg = category
+        else
+          raise ArgumentError,
+                "be_undefined の第1引数は Symbol または Matcher を渡してください（受け取った値: #{arg1.inspect}）"
         end
 
-        private
-
-        def evaluate(actual)
-          @inner.matches?(actual)
+        unless cat_arg.nil? || cat_arg.is_a?(Symbol)
+          raise ArgumentError,
+                "category は Symbol で指定してください（受け取った値: #{cat_arg.inspect}）。" \
+                "カスタムカテゴリは RSpec::Undefined::Categories.register で事前登録してください。"
         end
 
-        def describe_inner(inner)
-          if inner.respond_to?(:description)
-            inner.description
-          else
-            inner.class.name
-          end
-        end
-      end
-
-      def undefined_value_of(inner, category = nil)
-        UndefinedValueOf.new(inner, category)
+        BeUndefined.new(inner_arg, cat_arg)
       end
     end
 
