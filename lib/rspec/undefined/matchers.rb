@@ -9,11 +9,21 @@ module RSpec
       class BeUndefined
         attr_reader :matcher_name, :actual, :expected_recorded, :category
 
-        def initialize(inner = nil, category = nil)
+        # kwarg: :expected_provided で「キーワードが明示された」を示す（nil 期待値との区別）
+        def initialize(inner: nil, expected_value: nil, expected_provided: false, category: nil)
           @matcher_name = "be_undefined"
           @inner = inner
+          @expected_value = expected_value
+          @expected_provided = expected_provided
           @category = category
-          @expected_recorded = inner ? describe_inner(inner) : :__any__
+          @expected_recorded =
+            if @inner
+              describe_inner(@inner)
+            elsif @expected_provided
+              @expected_value.respond_to?(:description) ? @expected_value.description : @expected_value
+            else
+              :__any__
+            end
         end
 
         def matches?(actual)
@@ -45,7 +55,17 @@ module RSpec
         private
 
         def evaluate(actual)
-          @inner ? !!@inner.matches?(actual) : true
+          return !!@inner.matches?(actual) if @inner
+          return compare_expected(actual) if @expected_provided
+          true
+        end
+
+        def compare_expected(actual)
+          if @expected_value.respond_to?(:matches?)
+            !!@expected_value.matches?(actual)
+          else
+            actual == @expected_value
+          end
         end
 
         def describe_inner(inner)
@@ -82,12 +102,16 @@ module RSpec
         end
       end
 
-      def be_undefined(arg1 = nil, category = nil)
+      NO_EXPECTED = Object.new.freeze
+      private_constant :NO_EXPECTED if defined?(private_constant)
+
+      def be_undefined(arg1 = nil, category = nil, expected: NO_EXPECTED)
+        expected_provided = !expected.equal?(NO_EXPECTED)
         inner_arg = nil
         cat_arg = nil
 
         if arg1.nil?
-          # no-op
+          # noop
         elsif arg1.is_a?(Symbol)
           if !category.nil?
             raise ArgumentError,
@@ -102,13 +126,23 @@ module RSpec
                 "be_undefined の第1引数は Symbol または Matcher を渡してください（受け取った値: #{arg1.inspect}）"
         end
 
+        if inner_arg && expected_provided
+          raise ArgumentError,
+                "be_undefined: 内側マッチャと expected: は同時に指定できません（排他）"
+        end
+
         unless cat_arg.nil? || cat_arg.is_a?(Symbol)
           raise ArgumentError,
                 "category は Symbol で指定してください（受け取った値: #{cat_arg.inspect}）。" \
                 "カスタムカテゴリは RSpec::Undefined::Categories.register で事前登録してください。"
         end
 
-        BeUndefined.new(inner_arg, cat_arg)
+        BeUndefined.new(
+          inner: inner_arg,
+          expected_value: expected_provided ? expected : nil,
+          expected_provided: expected_provided,
+          category: cat_arg
+        )
       end
     end
 
