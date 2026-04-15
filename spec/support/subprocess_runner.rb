@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+# NOTE: Tempfile.create { } はブロック形式を Ruby 2.1+ で利用可能。CI で Ruby 2.0 を使う場合は要注意。
 
 require "open3"
 require "tempfile"
