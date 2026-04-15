@@ -110,3 +110,34 @@ RSpec.describe "RSpec::Undefined::Matchers#match_undefined_order" do
     expect(match_undefined_order([1]).matches?([2, 3])).to eq(true)
   end
 end
+
+RSpec.describe "RSpec::Undefined::Matchers#undefined_value_of" do
+  include RSpec::Undefined::Matchers
+
+  let(:registry) { RSpec::Undefined::Registry.new }
+  let(:config)   { RSpec::Undefined::Configuration.new(env: {}) }
+
+  before do
+    allow(RSpec::Undefined).to receive(:registry).and_return(registry)
+    allow(RSpec::Undefined).to receive(:configuration).and_return(config)
+  end
+
+  it "内側マッチャが通れば matched=true" do
+    undefined_value_of(eq(3)).matches?(3)
+    expect(registry.all.first.matched).to eq(true)
+  end
+
+  it "内側マッチャが落ちれば matched=false" do
+    undefined_value_of(eq(3)).matches?(4)
+    expect(registry.all.first.matched).to eq(false)
+  end
+
+  it "期待値に内側 description を記録する" do
+    undefined_value_of(eq(3)).matches?(3)
+    expect(registry.all.first.expected).to include("3")
+  end
+
+  it "通常モードでは常に matches? は true" do
+    expect(undefined_value_of(eq(3)).matches?(4)).to eq(true)
+  end
+end

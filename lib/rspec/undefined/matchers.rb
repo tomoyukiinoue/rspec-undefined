@@ -120,6 +120,32 @@ module RSpec
       def match_undefined_order(expected)
         MatchUndefinedOrder.new(expected)
       end
+
+      class UndefinedValueOf < BaseMatcher
+        def initialize(inner)
+          super("undefined_value_of")
+          @inner = inner
+          @expected_recorded = describe_inner(inner)
+        end
+
+        private
+
+        def evaluate(actual)
+          @inner.matches?(actual)
+        end
+
+        def describe_inner(inner)
+          if inner.respond_to?(:description)
+            inner.description
+          else
+            inner.class.name
+          end
+        end
+      end
+
+      def undefined_value_of(inner)
+        UndefinedValueOf.new(inner)
+      end
     end
 
     class << self
