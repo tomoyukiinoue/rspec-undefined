@@ -9,3 +9,9 @@
 
 # rspec failure tracking
 .rspec_status
+
+# 設計資料はローカル管理（Obsidian 等）
+docs/
+
+# Claude Code ローカル設定
+.claude/

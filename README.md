@@ -23,11 +23,14 @@ require "rspec/undefined"
 ### マッチャ
 
 ```ruby
-expect(value).to be_undefined
-expect(value).to be_undefined(:boundary)
-expect(users.map(&:id)).to be_undefined(:order, expected: match_array([1, 2, 3]))
-expect(value).to be_undefined(eq(3), :rounding)
+expect(value).to be_undefined                                   # カテゴリなし
+expect(value).to be_undefined(:boundary)                        # カテゴリのみ
+expect(total).to be_undefined(:boundary, expected: 100)         # 暫定仕様の期待値（== 比較）
+expect(users.map(&:id)).to be_undefined(:order, expected: match_array([1, 2, 3])) # Matcher 評価
+expect(value).to be_undefined(eq(3), :rounding)                 # 内側マッチャ + カテゴリ
 ```
+
+`expected:` キーワードに生値を渡すと `==` で比較され、RSpec マッチャを渡すと `matches?` で評価されます。値は記録だけされ（通常モードでは常に pass）、レポートで現状値とのズレを確認できます。
 
 ### example 宣言
 
@@ -62,7 +65,21 @@ by category:
 
 「仕様考慮漏れ」の類型を Symbol カテゴリとして指定できます。標準カテゴリは 13 種類:
 
-`:boundary`, `:nil_or_empty`, `:uniqueness`, `:order`, `:datetime`, `:encoding`, `:rounding`, `:permission`, `:state_transition`, `:concurrency`, `:deletion`, `:retroactive`, `:idempotency`
+| カテゴリ | 対象例 |
+|---|---|
+| `:boundary` | 上限/下限・最大件数・桁数・文字数・期間 |
+| `:nil_or_empty` | 0 件・null・空文字・未入力 |
+| `:uniqueness` | 一意制約・同名登録・同時登録 |
+| `:order` | 並び順・ソート規則 |
+| `:datetime` | 日時・タイムゾーン・和暦/西暦・うるう年/秒 |
+| `:encoding` | 文字コード・絵文字・サロゲートペア・半角/全角 |
+| `:rounding` | 金額丸め（四捨五入/銀行丸め）・通貨・税計算順序 |
+| `:permission` | 権限境界（閲覧/編集/削除・代理操作） |
+| `:state_transition` | 状態遷移（キャンセル後再操作・途中離脱・タイムアウト復帰） |
+| `:concurrency` | 楽観/悲観ロック・同時編集コンフリクト |
+| `:deletion` | 物理削除 vs 論理削除・削除済み参照 |
+| `:retroactive` | マスタ変更遡及（過去データ表示は旧値か新値か） |
+| `:idempotency` | 外部連携（リトライ・重複実行防止） |
 
 プロジェクト固有のカテゴリは `register_categories` で追加できます:
 
