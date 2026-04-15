@@ -31,5 +31,5 @@ Gem::Specification.new do |spec|
   spec.require_paths = ["lib"]
 
   spec.add_dependency "rspec-core", ">= 3.0", "< 4"
-  spec.add_dependency "csv"
+  spec.add_dependency "csv", ">= 3.0"
 end
