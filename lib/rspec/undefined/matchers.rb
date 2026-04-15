@@ -123,7 +123,8 @@ module RSpec
           cat_arg = category
         else
           raise ArgumentError,
-                "be_undefined の第1引数は Symbol または Matcher を渡してください（受け取った値: #{arg1.inspect}）"
+                "be_undefined の第1引数は Symbol カテゴリまたは RSpec Matcher を渡してください（受け取った値: #{arg1.inspect}）。" \
+                "素値を期待値として渡したい場合は expected: キーワードを使ってください (例: be_undefined(:category, expected: #{arg1.inspect}))"
         end
 
         if inner_arg && expected_provided

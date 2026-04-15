@@ -81,6 +81,10 @@ RSpec.describe "RSpec::Undefined::Matchers#be_undefined" do
       expect { be_undefined("str") }.to raise_error(ArgumentError, /Symbol|Matcher/)
     end
 
+    it "String の場合、expected: キーワードの案内が含まれる" do
+      expect { be_undefined("str") }.to raise_error(ArgumentError, /expected: キーワード/)
+    end
+
     it "内側マッチャ + String カテゴリは ArgumentError" do
       expect { be_undefined(eq(3), "str") }.to raise_error(ArgumentError, /Symbol/)
     end
