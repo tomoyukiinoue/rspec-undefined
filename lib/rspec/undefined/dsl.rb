@@ -43,4 +43,6 @@ module RSpec
   end
 end
 
-RSpec::Core::ExampleGroup.singleton_class.send(:include, RSpec::Undefined::DSL)
+unless RSpec::Core::ExampleGroup.singleton_class.include?(RSpec::Undefined::DSL)
+  RSpec::Core::ExampleGroup.singleton_class.send(:include, RSpec::Undefined::DSL)
+end
