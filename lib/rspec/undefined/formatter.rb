@@ -40,22 +40,23 @@ module RSpec
       def dump_by_category(entries)
         require "rspec/undefined/categories"
 
-        counts = Hash.new(0)
-        entries.each do |e|
-          key = e.category.nil? ? UNCATEGORIZED : e.category.to_s
-          counts[key] += 1
+        groups = entries.group_by { |e| e.category.nil? ? UNCATEGORIZED : e.category.to_s }
+        sample_category = entries.each_with_object({}) do |e, h|
+          next if e.category.nil?
+          h[e.category.to_s] ||= e.category
         end
-        @output.puts "by category:"
-        counts.sort_by { |k, _| k }.each do |k, v|
-          mark = marker_for(k, entries)
-          @output.puts "  #{k}#{mark}: #{v}"
-        end
-      end
 
-      def marker_for(key, entries)
-        return "" if key == UNCATEGORIZED
-        original = entries.map(&:category).compact.find { |c| c.to_s == key }
-        RSpec::Undefined::Categories.known?(original) ? "" : "*"
+        @output.puts "by category:"
+        groups.sort_by { |k, _| k }.each do |k, items|
+          mark = if k == UNCATEGORIZED
+                   ""
+                 elsif RSpec::Undefined::Categories.known?(sample_category[k])
+                   ""
+                 else
+                   "*"
+                 end
+          @output.puts "  #{k}#{mark}: #{items.size}"
+        end
       end
     end
   end
