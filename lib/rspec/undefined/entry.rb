@@ -3,7 +3,7 @@
 module RSpec
   module Undefined
     class Entry
-      ATTRS = [:kind, :matcher, :description, :expected, :actual,
+      ATTRS = [:kind, :matcher, :description, :category, :expected, :actual,
                :matched, :location, :example_id].freeze
 
       attr_reader(*ATTRS)

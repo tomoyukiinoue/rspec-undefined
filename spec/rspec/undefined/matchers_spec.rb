@@ -141,3 +141,50 @@ RSpec.describe "RSpec::Undefined::Matchers#undefined_value_of" do
     expect(undefined_value_of(eq(3)).matches?(4)).to eq(true)
   end
 end
+
+RSpec.describe "RSpec::Undefined::Matchers (category)" do
+  include RSpec::Undefined::Matchers
+
+  let(:registry) { RSpec::Undefined::Registry.new }
+  let(:config)   { RSpec::Undefined::Configuration.new(env: {}) }
+
+  before do
+    allow(RSpec::Undefined).to receive(:registry).and_return(registry)
+    allow(RSpec::Undefined).to receive(:configuration).and_return(config)
+  end
+
+  it "be_undefined にカテゴリを渡すと Entry に記録される" do
+    be_undefined(:boundary).matches?(100)
+    expect(registry.all.first.category).to eq(:boundary)
+  end
+
+  it "be_undefined_nil_or_empty の既定カテゴリは :nil_or_empty" do
+    be_undefined_nil_or_empty.matches?(nil)
+    expect(registry.all.first.category).to eq(:nil_or_empty)
+  end
+
+  it "be_undefined_nil_or_empty は任意のカテゴリで上書きできる" do
+    be_undefined_nil_or_empty(:deletion).matches?(nil)
+    expect(registry.all.first.category).to eq(:deletion)
+  end
+
+  it "match_undefined_order の既定カテゴリは :order" do
+    match_undefined_order([1, 2]).matches?([2, 1])
+    expect(registry.all.first.category).to eq(:order)
+  end
+
+  it "match_undefined_order はカテゴリを上書きできる" do
+    match_undefined_order([1, 2], category: :deletion).matches?([1, 2])
+    expect(registry.all.first.category).to eq(:deletion)
+  end
+
+  it "undefined_value_of にカテゴリを渡せる" do
+    undefined_value_of(eq(3), category: :rounding).matches?(3)
+    expect(registry.all.first.category).to eq(:rounding)
+  end
+
+  it "カテゴリ未指定時は nil" do
+    be_undefined.matches?(1)
+    expect(registry.all.first.category).to be_nil
+  end
+end

@@ -1,16 +1,18 @@
 # frozen_string_literal: true
 
 require "rspec/undefined/entry"
+require "rspec/undefined/categories"
 
 module RSpec
   module Undefined
     module Matchers
       class BaseMatcher
-        attr_reader :matcher_name, :actual, :expected_recorded
+        attr_reader :matcher_name, :actual, :expected_recorded, :category
 
-        def initialize(matcher_name)
+        def initialize(matcher_name, category: nil)
           @matcher_name = matcher_name
           @expected_recorded = :__any__
+          @category = category
         end
 
         def matches?(actual)
@@ -48,6 +50,7 @@ module RSpec
             RSpec::Undefined::Entry.new(
               kind: :matcher,
               matcher: matcher_name,
+              category: @category,
               expected: @expected_recorded,
               actual: @actual,
               matched: matched,
@@ -69,14 +72,14 @@ module RSpec
       end
 
       class BeUndefined < BaseMatcher
-        def initialize
-          super("be_undefined")
+        def initialize(category = nil)
+          super("be_undefined", category: category)
         end
       end
 
       class BeUndefinedNilOrEmpty < BaseMatcher
-        def initialize
-          super("be_undefined_nil_or_empty")
+        def initialize(category = nil)
+          super("be_undefined_nil_or_empty", category: category || :nil_or_empty)
           @expected_recorded = :__nil_or_empty__
         end
 
@@ -89,17 +92,17 @@ module RSpec
         end
       end
 
-      def be_undefined
-        BeUndefined.new
+      def be_undefined(category = nil)
+        BeUndefined.new(category)
       end
 
-      def be_undefined_nil_or_empty
-        BeUndefinedNilOrEmpty.new
+      def be_undefined_nil_or_empty(category = nil)
+        BeUndefinedNilOrEmpty.new(category)
       end
 
       class MatchUndefinedOrder < BaseMatcher
-        def initialize(expected)
-          super("match_undefined_order")
+        def initialize(expected, category: :order)
+          super("match_undefined_order", category: category)
           @expected = expected
           @expected_recorded = expected
         end
@@ -117,13 +120,13 @@ module RSpec
         end
       end
 
-      def match_undefined_order(expected)
-        MatchUndefinedOrder.new(expected)
+      def match_undefined_order(expected, category: :order)
+        MatchUndefinedOrder.new(expected, category: category)
       end
 
       class UndefinedValueOf < BaseMatcher
-        def initialize(inner)
-          super("undefined_value_of")
+        def initialize(inner, category: nil)
+          super("undefined_value_of", category: category)
           @inner = inner
           @expected_recorded = describe_inner(inner)
         end
@@ -143,8 +146,8 @@ module RSpec
         end
       end
 
-      def undefined_value_of(inner)
-        UndefinedValueOf.new(inner)
+      def undefined_value_of(inner, category: nil)
+        UndefinedValueOf.new(inner, category: category)
       end
     end
 

@@ -32,4 +32,15 @@ RSpec.describe RSpec::Undefined::Entry do
     expect(h[:location]).to eq("spec/y.rb:1")
     expect(h[:matcher]).to be_nil
   end
+
+  it "category 属性を受け取る" do
+    entry = described_class.new(kind: :matcher, category: :boundary)
+    expect(entry.category).to eq(:boundary)
+    expect(entry.to_h[:category]).to eq(:boundary)
+  end
+
+  it "category 未指定時は nil" do
+    entry = described_class.new(kind: :declaration)
+    expect(entry.category).to be_nil
+  end
 end
