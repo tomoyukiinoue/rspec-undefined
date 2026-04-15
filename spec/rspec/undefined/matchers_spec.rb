@@ -76,3 +76,37 @@ RSpec.describe "RSpec::Undefined::Matchers#be_undefined_nil_or_empty" do
     expect(be_undefined_nil_or_empty.matches?([1])).to eq(false)
   end
 end
+
+RSpec.describe "RSpec::Undefined::Matchers#match_undefined_order" do
+  include RSpec::Undefined::Matchers
+
+  let(:registry) { RSpec::Undefined::Registry.new }
+  let(:config)   { RSpec::Undefined::Configuration.new(env: {}) }
+
+  before do
+    allow(RSpec::Undefined).to receive(:registry).and_return(registry)
+    allow(RSpec::Undefined).to receive(:configuration).and_return(config)
+  end
+
+  it "同じ要素・異なる順序なら matched=true" do
+    match_undefined_order([1, 2, 3]).matches?([3, 1, 2])
+    entry = registry.all.first
+    expect(entry.matched).to eq(true)
+    expect(entry.expected).to eq([1, 2, 3])
+    expect(entry.actual).to eq([3, 1, 2])
+  end
+
+  it "要素が違えば matched=false" do
+    match_undefined_order([1, 2, 3]).matches?([1, 2])
+    expect(registry.all.first.matched).to eq(false)
+  end
+
+  it "比較不能値は matched=nil" do
+    match_undefined_order([1, "a"]).matches?(["a", 1])
+    expect(registry.all.first.matched).to be_nil
+  end
+
+  it "通常モードでは matches? は常に true" do
+    expect(match_undefined_order([1]).matches?([2, 3])).to eq(true)
+  end
+end

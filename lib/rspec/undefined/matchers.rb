@@ -96,6 +96,30 @@ module RSpec
       def be_undefined_nil_or_empty
         BeUndefinedNilOrEmpty.new
       end
+
+      class MatchUndefinedOrder < BaseMatcher
+        def initialize(expected)
+          super("match_undefined_order")
+          @expected = expected
+          @expected_recorded = expected
+        end
+
+        private
+
+        def evaluate(actual)
+          return false unless actual.is_a?(Array) && @expected.is_a?(Array)
+          return false if actual.size != @expected.size
+          begin
+            @expected.sort == actual.sort
+          rescue ArgumentError, TypeError
+            nil
+          end
+        end
+      end
+
+      def match_undefined_order(expected)
+        MatchUndefinedOrder.new(expected)
+      end
     end
 
     class << self
