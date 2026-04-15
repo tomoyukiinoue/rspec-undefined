@@ -50,4 +50,11 @@ RSpec.describe RSpec::Undefined::Reporters::Json do
     expect { r.write }.not_to raise_error
     expect(err.string).to include("rspec-undefined")
   end
+
+  it "失敗時に tmp ファイルを残さない" do
+    err = StringIO.new
+    bad_path = "/nonexistent/dir/out.json"
+    described_class.new(bad_path, stderr: err).write
+    expect(Dir.glob("#{File.dirname(bad_path)}/*.tmp*")).to be_empty
+  end
 end

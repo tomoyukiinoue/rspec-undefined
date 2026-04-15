@@ -20,15 +20,24 @@ module RSpec
 
         def write
           entries = RSpec::Undefined.registry.all
-          ::CSV.open(@path, "w") do |csv|
-            csv << HEADERS
-            entries.each { |e| csv << row_for(e) }
+          tmp_path = "#{@path}.tmp.#{Process.pid}"
+          begin
+            write_body(tmp_path, entries)
+            File.rename(tmp_path, @path)
+          rescue SystemCallError, IOError => ex
+            File.delete(tmp_path) if File.exist?(tmp_path)
+            @stderr.puts "[rspec-undefined] failed to write #{@path}: #{ex.message}"
           end
-        rescue SystemCallError, IOError => ex
-          @stderr.puts "[rspec-undefined] failed to write #{@path}: #{ex.message}"
         end
 
         private
+
+        def write_body(path, entries)
+          ::CSV.open(path, "w") do |csv|
+            csv << HEADERS
+            entries.each { |e| csv << row_for(e) }
+          end
+        end
 
         def row_for(entry)
           [

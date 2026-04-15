@@ -18,12 +18,21 @@ module RSpec
 
         def write
           entries = RSpec::Undefined.registry.all
-          File.write(@path, render(entries))
-        rescue SystemCallError, IOError => ex
-          @stderr.puts "[rspec-undefined] failed to write #{@path}: #{ex.message}"
+          tmp_path = "#{@path}.tmp.#{Process.pid}"
+          begin
+            write_body(tmp_path, entries)
+            File.rename(tmp_path, @path)
+          rescue SystemCallError, IOError => ex
+            File.delete(tmp_path) if File.exist?(tmp_path)
+            @stderr.puts "[rspec-undefined] failed to write #{@path}: #{ex.message}"
+          end
         end
 
         private
+
+        def write_body(path, entries)
+          File.write(path, render(entries))
+        end
 
         def render(entries)
           lines = []
