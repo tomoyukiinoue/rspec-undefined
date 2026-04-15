@@ -11,6 +11,8 @@ require "rspec/undefined/dsl"
 require "rspec/undefined/formatter"
 require "rspec/undefined/reporters/json"
 require "rspec/undefined/reporters/yaml"
+require "rspec/undefined/reporters/csv"
+require "rspec/undefined/reporters/markdown"
 
 module RSpec
   module Undefined
@@ -35,6 +37,8 @@ RSpec.configure do |rspec|
         case cfg.report_format
         when :json then RSpec::Undefined::Reporters::Json.new(cfg.report_path)
         when :yaml then RSpec::Undefined::Reporters::Yaml.new(cfg.report_path)
+        when :csv then RSpec::Undefined::Reporters::Csv.new(cfg.report_path)
+        when :markdown then RSpec::Undefined::Reporters::Markdown.new(cfg.report_path)
         end
       reporter.write if reporter
     end

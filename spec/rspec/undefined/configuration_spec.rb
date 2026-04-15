@@ -49,9 +49,11 @@ RSpec.describe RSpec::Undefined::Configuration do
       expect(config.report_format).to eq(:json)
     end
 
-    it ":yaml を代入できる" do
-      config.report_format = :yaml
-      expect(config.report_format).to eq(:yaml)
+    [:json, :yaml, :csv, :markdown].each do |fmt|
+      it ":#{fmt} を代入できる" do
+        config.report_format = fmt
+        expect(config.report_format).to eq(fmt)
+      end
     end
 
     it "未知のフォーマットは ArgumentError" do

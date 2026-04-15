@@ -3,7 +3,7 @@
 module RSpec
   module Undefined
     class Configuration
-      ALLOWED_FORMATS = [:json, :yaml].freeze
+      ALLOWED_FORMATS = [:json, :yaml, :csv, :markdown].freeze
       TRUE_VALUES = %w[1 true yes].freeze
 
       attr_accessor :report_path
