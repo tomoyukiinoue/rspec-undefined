@@ -2,26 +2,25 @@
 
 require "rspec/core"
 require "rspec/undefined/entry"
-require "rspec/undefined/registry"
-require "rspec/undefined/configuration"
 
 module RSpec
   module Undefined
     module DSL
-      def undefined(description, &block)
+      def undefined(description, category: nil, &block)
         loc = caller_locations(1, 1).first
         location = loc ? "#{loc.path}:#{loc.lineno}" : nil
-        example("[undefined] #{description}", undefined: true) do
-          RSpec::Undefined::Registry.instance.add(
+        example("[undefined] #{description}", undefined: true, undefined_category: category) do
+          RSpec::Undefined.registry.add(
             RSpec::Undefined::Entry.new(
               kind: :declaration,
               description: description,
+              category: category,
               location: location,
               example_id: RSpec.current_example && RSpec.current_example.id
             )
           )
 
-          if RSpec::Undefined::Configuration.new.strict?
+          if RSpec::Undefined.configuration.strict?
             raise RSpec::Expectations::ExpectationNotMetError,
                   "undefined declaration (strict mode): #{description}"
           end
