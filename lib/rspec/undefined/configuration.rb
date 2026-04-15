@@ -33,6 +33,11 @@ module RSpec
         end
         @report_format = value
       end
+
+      def register_categories(*names)
+        require "rspec/undefined/categories"
+        Categories.register(*names)
+      end
     end
   end
 end

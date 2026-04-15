@@ -38,6 +38,8 @@ module RSpec
       end
 
       def dump_by_category(entries)
+        require "rspec/undefined/categories"
+
         counts = Hash.new(0)
         entries.each do |e|
           key = e.category.nil? ? UNCATEGORIZED : e.category.to_s
@@ -45,8 +47,15 @@ module RSpec
         end
         @output.puts "by category:"
         counts.sort_by { |k, _| k }.each do |k, v|
-          @output.puts "  #{k}: #{v}"
+          mark = marker_for(k, entries)
+          @output.puts "  #{k}#{mark}: #{v}"
         end
+      end
+
+      def marker_for(key, entries)
+        return "" if key == UNCATEGORIZED
+        original = entries.map(&:category).compact.find { |c| c.to_s == key }
+        RSpec::Undefined::Categories.known?(original) ? "" : "*"
       end
     end
   end

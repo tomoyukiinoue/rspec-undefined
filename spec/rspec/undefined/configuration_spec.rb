@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "rspec/undefined/configuration"
+require "rspec/undefined/categories"
 
 RSpec.describe RSpec::Undefined::Configuration do
   subject(:config) { described_class.new(env: env) }
@@ -27,6 +28,15 @@ RSpec.describe RSpec::Undefined::Configuration do
       config = described_class.new(env: { "RSPEC_UNDEFINED_STRICT" => "1" })
       config.strict = false
       expect(config.strict?).to eq(false)
+    end
+  end
+
+  describe "#register_categories" do
+    after { RSpec::Undefined::Categories.reset_registered! }
+
+    it "Categories.register を呼び出す" do
+      config.register_categories(:custom_a, :custom_b)
+      expect(RSpec::Undefined::Categories.registered).to include(:custom_a, :custom_b)
     end
   end
 
