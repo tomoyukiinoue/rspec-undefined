@@ -4,7 +4,7 @@ require_relative "lib/rspec/undefined/version"
 
 Gem::Specification.new do |spec|
   spec.name = "rspec-undefined"
-  spec.version = Rspec::Undefined::VERSION
+  spec.version = RSpec::Undefined::VERSION
   spec.authors = ["Tomoyuki INOUE"]
   spec.email = ["tomoyuki.inoue@gmail.com"]
 
