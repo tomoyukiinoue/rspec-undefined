@@ -74,8 +74,27 @@ module RSpec
         end
       end
 
+      class BeUndefinedNilOrEmpty < BaseMatcher
+        def initialize
+          super("be_undefined_nil_or_empty")
+          @expected_recorded = :__nil_or_empty__
+        end
+
+        private
+
+        def evaluate(actual)
+          return true if actual.nil?
+          return actual.empty? if actual.respond_to?(:empty?)
+          false
+        end
+      end
+
       def be_undefined
         BeUndefined.new
+      end
+
+      def be_undefined_nil_or_empty
+        BeUndefinedNilOrEmpty.new
       end
     end
 

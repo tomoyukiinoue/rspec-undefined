@@ -35,3 +35,44 @@ RSpec.describe "RSpec::Undefined::Matchers#be_undefined" do
     expect(matcher.failure_message).to include("undefined")
   end
 end
+
+RSpec.describe "RSpec::Undefined::Matchers#be_undefined_nil_or_empty" do
+  include RSpec::Undefined::Matchers
+
+  let(:registry) { RSpec::Undefined::Registry.new }
+  let(:config)   { RSpec::Undefined::Configuration.new(env: {}) }
+
+  before do
+    allow(RSpec::Undefined).to receive(:registry).and_return(registry)
+    allow(RSpec::Undefined).to receive(:configuration).and_return(config)
+  end
+
+  it "nil は matched=true" do
+    be_undefined_nil_or_empty.matches?(nil)
+    expect(registry.all.first.matched).to eq(true)
+  end
+
+  it "空配列は matched=true" do
+    be_undefined_nil_or_empty.matches?([])
+    expect(registry.all.first.matched).to eq(true)
+  end
+
+  it "要素ありの配列は matched=false" do
+    be_undefined_nil_or_empty.matches?([1])
+    expect(registry.all.first.matched).to eq(false)
+  end
+
+  it "empty? を持たない値は matched=false" do
+    be_undefined_nil_or_empty.matches?(42)
+    expect(registry.all.first.matched).to eq(false)
+  end
+
+  it "通常モードでは matches? は true を返す" do
+    expect(be_undefined_nil_or_empty.matches?([1])).to eq(true)
+  end
+
+  it "strict モードでは matches? が false" do
+    config.strict = true
+    expect(be_undefined_nil_or_empty.matches?([1])).to eq(false)
+  end
+end
