@@ -86,6 +86,19 @@ RSpec::Undefined.configure do |c|
 end
 ```
 
+## strict モードと DSL の関係
+
+`RSPEC_UNDEFINED_STRICT=1` を有効にすると以下の箇所が example 失敗になります:
+
+- `be_undefined`（すべての形式）を呼んだ example
+- `undefined "..."` / `undefined "...", category: :sym` で宣言した example（ブロック有無にかかわらず）
+
+strict モード時、`undefined` DSL の**ブロックは実行されず、即座に fail します**。ブロック内の補助検証は通常モードでのみ走ります。
+
+## require の副作用について
+
+`require "rspec/undefined"` を実行すると、`RSpec.configure` の `before(:suite)` / `after(:suite)` フックが登録され、`RSpec::Matchers` に `be_undefined` がミックスインされます。別のテスト環境で有効化したくない場合は require の場所を制限してください（`spec/spec_helper.rb` 限定 等）。
+
 ## 推奨運用
 
 1. レガシー仕様書の起こし作業中は通常モードで未確定を貯める
