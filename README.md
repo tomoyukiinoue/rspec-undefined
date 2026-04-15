@@ -81,7 +81,7 @@ expect(total).to be_undefined(:invoice_rounding, expected: 1000)
 ```ruby
 RSpec::Undefined.configure do |c|
   c.report_path   = "tmp/undefined.json"
-  c.report_format = :json                 # :json | :yaml
+  c.report_format = :json                 # :json | :yaml | :csv | :markdown
   c.register_categories :my_cat
 end
 ```
