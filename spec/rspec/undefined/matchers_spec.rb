@@ -174,17 +174,27 @@ RSpec.describe "RSpec::Undefined::Matchers (category)" do
   end
 
   it "match_undefined_order はカテゴリを上書きできる" do
-    match_undefined_order([1, 2], category: :deletion).matches?([1, 2])
+    match_undefined_order([1, 2], :deletion).matches?([1, 2])
     expect(registry.all.first.category).to eq(:deletion)
   end
 
   it "undefined_value_of にカテゴリを渡せる" do
-    undefined_value_of(eq(3), category: :rounding).matches?(3)
+    undefined_value_of(eq(3), :rounding).matches?(3)
     expect(registry.all.first.category).to eq(:rounding)
   end
 
   it "カテゴリ未指定時は nil" do
     be_undefined.matches?(1)
     expect(registry.all.first.category).to be_nil
+  end
+
+  it "be_undefined は文字列カスタム分類を受け付ける" do
+    be_undefined("マイ独自分類").matches?(42)
+    expect(registry.all.first.category).to eq("マイ独自分類")
+  end
+
+  it "match_undefined_order は文字列カスタム分類を受け付ける" do
+    match_undefined_order([1, 2], "DBの並び順未定").matches?([2, 1])
+    expect(registry.all.first.category).to eq("DBの並び順未定")
   end
 end

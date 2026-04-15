@@ -9,7 +9,7 @@ module RSpec
       class BaseMatcher
         attr_reader :matcher_name, :actual, :expected_recorded, :category
 
-        def initialize(matcher_name, category: nil)
+        def initialize(matcher_name, category = nil)
           @matcher_name = matcher_name
           @expected_recorded = :__any__
           @category = category
@@ -73,13 +73,13 @@ module RSpec
 
       class BeUndefined < BaseMatcher
         def initialize(category = nil)
-          super("be_undefined", category: category)
+          super("be_undefined", category)
         end
       end
 
       class BeUndefinedNilOrEmpty < BaseMatcher
         def initialize(category = nil)
-          super("be_undefined_nil_or_empty", category: category || :nil_or_empty)
+          super("be_undefined_nil_or_empty", category || :nil_or_empty)
           @expected_recorded = :__nil_or_empty__
         end
 
@@ -101,8 +101,8 @@ module RSpec
       end
 
       class MatchUndefinedOrder < BaseMatcher
-        def initialize(expected, category: :order)
-          super("match_undefined_order", category: category)
+        def initialize(expected, category = :order)
+          super("match_undefined_order", category)
           @expected = expected
           @expected_recorded = expected
         end
@@ -120,13 +120,13 @@ module RSpec
         end
       end
 
-      def match_undefined_order(expected, category: :order)
-        MatchUndefinedOrder.new(expected, category: category)
+      def match_undefined_order(expected, category = :order)
+        MatchUndefinedOrder.new(expected, category)
       end
 
       class UndefinedValueOf < BaseMatcher
-        def initialize(inner, category: nil)
-          super("undefined_value_of", category: category)
+        def initialize(inner, category = nil)
+          super("undefined_value_of", category)
           @inner = inner
           @expected_recorded = describe_inner(inner)
         end
@@ -146,8 +146,8 @@ module RSpec
         end
       end
 
-      def undefined_value_of(inner, category: nil)
-        UndefinedValueOf.new(inner, category: category)
+      def undefined_value_of(inner, category = nil)
+        UndefinedValueOf.new(inner, category)
       end
     end
 
