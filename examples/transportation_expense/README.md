@@ -24,7 +24,26 @@ bundle install
 bundle exec rspec
 ```
 
-3 本中 1 本は通常の green、残り 2 本は `be_undefined` によって「未確定として記録」され、テスト終了時にサマリが表示されます。
+3 本中 1 本は通常の green、残り 2 本は `be_undefined` によって「未確定として記録」され、テスト終了時に次のようなサマリが表示されます（`(...)` の部分には呼び出し元の location が入ります）。
+
+```
+...
+
+Undefined spec items:
+  1) [matcher] {tax_handling} be_undefined expected=300 actual=300 matched=true (...)
+  2) [matcher] {rounding} be_undefined expected=315.0 actual=315.0 matched=true (...)
+
+undefined: 2
+by category:
+  rounding: 1
+  tax_handling: 1
+
+
+Finished in 0.00623 seconds (files took 0.16016 seconds to load)
+3 examples, 0 failures
+```
+
+`{tax_handling}` に `*` マーカーが付いていなければ、独自カテゴリが正しく登録されている証拠です（未登録の場合は `{*tax_handling}` のように表示されます）。
 
 ### strict モード
 
@@ -33,3 +52,5 @@ bundle exec rspec
 ```sh
 RSPEC_UNDEFINED_STRICT=1 bundle exec rspec
 ```
+
+このサンプルでは現行踏襲テストの 1 本が pass、残り 2 本が failure となり、`3 examples, 2 failures` で終了します。
