@@ -8,7 +8,7 @@ module SubprocessRunner
   # spec ソース文字列を一時ファイルに書き、rspec を別プロセスで実行する
   def run_spec_source(source, env: {})
     Tempfile.create(["dsl_spec", ".rb"]) do |f|
-      f.write(<<~RUBY + source)
+      f.write(<<-RUBY + source)
         $LOAD_PATH.unshift(File.expand_path("#{Dir.pwd}/lib"))
         require "rspec/autorun"
         require "rspec/undefined/configuration"
@@ -46,7 +46,7 @@ module SubprocessRunner
 
   def run_spec_source_oneline(source, env: {})
     Tempfile.create(["dsl_spec", ".rb"]) do |f|
-      f.write(<<~RUBY + source)
+      f.write(<<-RUBY + source)
         $LOAD_PATH.unshift(File.expand_path("#{Dir.pwd}/lib"))
         require "rspec/autorun"
         require "rspec/undefined"

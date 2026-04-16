@@ -8,6 +8,10 @@ require "rspec/undefined/registry"
 require "rspec/undefined/reporters/csv"
 
 RSpec.describe RSpec::Undefined::Reporters::Csv do
+  before(:all) do
+    skip "csv gem >= 3.0 not available on Ruby < 2.3" if RUBY_VERSION < "2.3"
+  end
+
   let(:registry) { RSpec::Undefined::Registry.new }
 
   before do

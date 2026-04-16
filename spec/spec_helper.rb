@@ -1,6 +1,25 @@
 # frozen_string_literal: true
 
 require "rspec/undefined"
+require "tempfile"
+
+# Polyfill Tempfile.create for Ruby 2.0 (introduced in 2.1)
+unless Tempfile.respond_to?(:create)
+  def Tempfile.create(basename = "", tmpdir = nil, mode: 0, **options)
+    tmpfile = new(basename, tmpdir, mode: mode, **options)
+    path = tmpfile.path
+    tmpfile.close
+    if block_given?
+      begin
+        yield File.open(path, "r+")
+      ensure
+        File.unlink(path) if File.exist?(path)
+      end
+    else
+      path
+    end
+  end
+end
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure

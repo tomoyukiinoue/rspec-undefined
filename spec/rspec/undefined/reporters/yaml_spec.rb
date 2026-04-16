@@ -8,6 +8,13 @@ require "rspec/undefined/registry"
 require "rspec/undefined/reporters/yaml"
 
 RSpec.describe RSpec::Undefined::Reporters::Yaml do
+  # YAML.safe_load with keyword arguments (permitted_classes:) requires Psych 3.1+.
+  # Ruby 2.0 ships Psych 2.0 which lacks safe_load entirely.
+  # On Ruby 2.2+, bundler typically pulls in a newer psych gem that supports kwargs.
+  before(:all) do
+    skip "YAML.safe_load not available in this Psych version" unless YAML.respond_to?(:safe_load)
+  end
+
   let(:registry) { RSpec::Undefined::Registry.new }
 
   before do
