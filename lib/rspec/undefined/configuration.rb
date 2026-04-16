@@ -3,7 +3,7 @@
 module RSpec
   module Undefined
     class Configuration
-      ALLOWED_FORMATS = [:json, :yaml, :csv, :markdown].freeze
+      ALLOWED_FORMATS = [:json, :yaml, :markdown].freeze
       TRUE_VALUES = %w[1 true yes].freeze
 
       def initialize(env: ENV)

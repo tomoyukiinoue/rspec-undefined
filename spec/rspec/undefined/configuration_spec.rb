@@ -49,7 +49,7 @@ RSpec.describe RSpec::Undefined::Configuration do
       expect(config.report_format).to eq(:json)
     end
 
-    [:json, :yaml, :csv, :markdown].each do |fmt|
+    [:json, :yaml, :markdown].each do |fmt|
       it ":#{fmt} を代入できる" do
         config.report_format = fmt
         expect(config.report_format).to eq(fmt)
