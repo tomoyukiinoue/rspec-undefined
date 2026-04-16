@@ -1,14 +1,11 @@
 # frozen_string_literal: true
 
+require "rspec/undefined/sentinels"
+
 module RSpec
   module Undefined
     module Reporters
       class Markdown
-        SENTINELS = {
-          __any__: "__any__",
-          __nil_or_empty__: "__nil_or_empty__"
-        }.freeze
-
         HEADERS = %w[No. kind matcher category description expected actual matched location].freeze
 
         def initialize(path, stderr: $stderr)
@@ -63,13 +60,7 @@ module RSpec
         end
 
         def format_value(v)
-          if v.is_a?(Symbol) && SENTINELS.key?(v)
-            SENTINELS[v]
-          elsif v.is_a?(Symbol)
-            v.to_s
-          else
-            v.inspect
-          end
+          Sentinels.normalize(v) { |x| x.inspect }
         end
 
         def escape(v)
