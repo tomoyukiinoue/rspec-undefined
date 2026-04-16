@@ -31,5 +31,7 @@ Gem::Specification.new do |spec|
   spec.require_paths = ["lib"]
 
   spec.add_dependency "rspec-core", ">= 3.0", "< 4"
-  spec.add_dependency "csv", ">= 3.0"
+  # csv は Ruby 2.0〜3.3 では stdlib/bundled gem として利用可能。
+  # gem 版は Ruby >= 2.5 を要求するため、gemspec には含めない。
+  # Ruby 3.4 以降で bundled gem から外れた場合は Gemfile で追加すること。
 end

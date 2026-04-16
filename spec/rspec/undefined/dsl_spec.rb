@@ -17,7 +17,7 @@ RSpec.describe "RSpec::Undefined::DSL" do
 
   describe "サブプロセス実行" do
     it "ブロックなしの undefined 宣言は pass する" do
-      src = <<~RUBY
+      src = <<-RUBY
         RSpec.describe "X" do
           undefined "仕様未確定"
         end
@@ -27,7 +27,7 @@ RSpec.describe "RSpec::Undefined::DSL" do
     end
 
     it "ブロック付きの undefined は中で失敗しても pass する" do
-      src = <<~RUBY
+      src = <<-RUBY
         RSpec.describe "X" do
           undefined "ブロック付き" do
             expect(1).to eq(2)
@@ -39,7 +39,7 @@ RSpec.describe "RSpec::Undefined::DSL" do
     end
 
     it "category: を受け取る" do
-      src = <<~RUBY
+      src = <<-RUBY
         RSpec.describe "X" do
           undefined "状態遷移", category: :state_transition
         end
@@ -49,7 +49,7 @@ RSpec.describe "RSpec::Undefined::DSL" do
     end
 
     it "undefined に String category を渡すと ArgumentError" do
-      src = <<~RUBY
+      src = <<-RUBY
         RSpec.describe "X" do
           undefined "説明", category: "str"
         end
@@ -59,7 +59,7 @@ RSpec.describe "RSpec::Undefined::DSL" do
     end
 
     it "strict モードでは undefined 宣言が fail する" do
-      src = <<~RUBY
+      src = <<-RUBY
         RSpec.describe "X" do
           undefined "未確定"
         end

@@ -8,7 +8,7 @@ RSpec.describe "rspec/undefined (integration)" do
   include SubprocessRunner
 
   it "require \"rspec/undefined\" 一行で全機能が使える" do
-    src = <<~RUBY
+    src = <<-RUBY
       RSpec.describe "サンプル" do
         it "be_undefined (カテゴリ + expected)" do
           expect([3, 2, 1]).to be_undefined(:order, expected: match_array([1, 2, 3]))
@@ -24,7 +24,7 @@ RSpec.describe "rspec/undefined (integration)" do
   end
 
   it "RSPEC_UNDEFINED_STRICT=1 で example が fail する" do
-    src = <<~RUBY
+    src = <<-RUBY
       RSpec.describe "S" do
         it "fails" do
           expect(42).to be_undefined
@@ -40,7 +40,7 @@ RSpec.describe "rspec/undefined (integration)" do
     FileUtils.mkdir_p(File.dirname(out_path))
     File.delete(out_path) if File.exist?(out_path)
 
-    src = <<~RUBY
+    src = <<-RUBY
       RSpec::Undefined.configure do |c|
         c.report_path = #{out_path.inspect}
         c.report_format = :json

@@ -11,9 +11,11 @@ RSpec.describe RSpec::Undefined do
 
   it "configure で report_format を設定できる" do
     original = RSpec::Undefined.configuration.report_format
-    RSpec::Undefined.configure { |c| c.report_format = :yaml }
-    expect(RSpec::Undefined.configuration.report_format).to eq(:yaml)
-  ensure
-    RSpec::Undefined.configure { |c| c.report_format = original }
+    begin
+      RSpec::Undefined.configure { |c| c.report_format = :yaml }
+      expect(RSpec::Undefined.configuration.report_format).to eq(:yaml)
+    ensure
+      RSpec::Undefined.configure { |c| c.report_format = original }
+    end
   end
 end
