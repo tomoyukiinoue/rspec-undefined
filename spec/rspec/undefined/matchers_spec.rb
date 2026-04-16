@@ -103,9 +103,9 @@ RSpec.describe "RSpec::Undefined::Matchers#be_undefined" do
     end
 
     it "not_to be_undefined は ExpectationNotMetError を発生させる" do
-      expect {
+      expect do
         expect(42).not_to be_undefined
-      }.to raise_error(RSpec::Expectations::ExpectationNotMetError, /否定形では使えません/)
+      end.to raise_error(RSpec::Expectations::ExpectationNotMetError, /否定形では使えません/)
     end
   end
 end

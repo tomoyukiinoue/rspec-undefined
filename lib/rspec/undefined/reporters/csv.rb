@@ -49,7 +49,7 @@ module RSpec
         end
 
         def format_value(v)
-          Sentinels.normalize(v) { |x| x.inspect }
+          Sentinels.normalize(v, &:inspect)
         end
 
         def stringify(v)
