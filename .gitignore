@@ -15,3 +15,7 @@ docs/
 
 # Claude Code ローカル設定
 .claude/
+
+# examples 配下のサンプルは path: 指定で本体 gem を参照するため、
+# lock ファイルはコミット対象外にする
+examples/**/Gemfile.lock
