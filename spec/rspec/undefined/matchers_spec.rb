@@ -89,6 +89,25 @@ RSpec.describe "RSpec::Undefined::Matchers#be_undefined" do
       expect { be_undefined(eq(3), "str") }.to raise_error(ArgumentError, /Symbol/)
     end
   end
+
+  describe "否定形（not_to / to_not）" do
+    it "does_not_match? は常に false を返し、否定形では成立しない" do
+      matcher = be_undefined
+      expect(matcher.does_not_match?(42)).to eq(false)
+    end
+
+    it "failure_message_when_negated は否定形を使うなという案内を含む" do
+      matcher = be_undefined
+      matcher.does_not_match?(42)
+      expect(matcher.failure_message_when_negated).to include("否定形では使えません")
+    end
+
+    it "not_to be_undefined は ExpectationNotMetError を発生させる" do
+      expect do
+        expect(42).not_to be_undefined
+      end.to raise_error(RSpec::Expectations::ExpectationNotMetError, /否定形では使えません/)
+    end
+  end
 end
 
 RSpec.describe "RSpec::Undefined::Matchers#be_undefined with expected:" do

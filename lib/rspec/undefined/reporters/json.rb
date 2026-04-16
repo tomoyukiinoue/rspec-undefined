@@ -1,16 +1,12 @@
 # frozen_string_literal: true
 
 require "json"
+require "rspec/undefined/sentinels"
 
 module RSpec
   module Undefined
     module Reporters
       class Json
-        SENTINELS = {
-          __any__: "__any__",
-          __nil_or_empty__: "__nil_or_empty__"
-        }.freeze
-
         def initialize(path, stderr: $stderr)
           @path = path
           @stderr = stderr
@@ -48,13 +44,7 @@ module RSpec
         end
 
         def normalize(value)
-          if value.is_a?(Symbol) && SENTINELS.key?(value)
-            SENTINELS[value]
-          elsif value.is_a?(Symbol)
-            value.to_s
-          else
-            value
-          end
+          Sentinels.normalize(value)
         end
       end
     end
