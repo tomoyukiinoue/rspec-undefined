@@ -148,6 +148,35 @@ In strict mode, **the block passed to `undefined` is not executed — the exampl
 
 When `rspec-undefined` is finally gone from your Gemfile, you have no undefined specs left. From there, whether to extend the system's life, replace it, build a harness, or improve it — that is a human's job.
 
+## Contributing
+
+This repository is open source, but **pull requests will only be accepted from registered contributors**.
+
+### Why
+
+The volume of low-quality, LLM-generated pull requests has increased significantly. This project is maintained by a small team, and to keep review workload sustainable we apply the following policy:
+
+- **Pull requests from non-registered contributors will generally be closed**
+- Issues (bug reports, feature requests, design discussion) are welcome
+- If you are interested in contributing code, please open a GitHub Issue first. If the direction fits, you will be invited as a contributor
+
+### Filing issues
+
+- **Bug reports**: reproduction steps / expected behavior / actual behavior / Ruby, RSpec, OS versions
+- **Feature requests**: motivation / intended use case / alternatives considered
+
+### On AI-assisted contributions
+
+Using AI to help write code is fine. We particularly recommend [Claude Code](https://claude.com/claude-code) (the maintainers of this project use it themselves).
+
+That said, the following are required:
+
+- You must understand the change and be able to explain it in your own words in the PR description
+- `bin/docker-test.sh` must pass
+- The change must not conflict with the design philosophy described in this README
+
+PRs that appear to be raw prompt outputs without human review will be declined.
+
 ## Supported Ruby / RSpec
 
 | | Version |
