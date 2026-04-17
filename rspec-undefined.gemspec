@@ -6,7 +6,6 @@ Gem::Specification.new do |spec|
   spec.name = "rspec-undefined"
   spec.version = RSpec::Undefined::VERSION
   spec.authors = ["Tomoyuki INOUE"]
-  spec.email = ["tomoyuki.inoue@gmail.com"]
 
   spec.summary = "RSpec extension to explicitly express 'undefined specification' in tests"
   spec.description = "Provides matchers and DSL to explicitly record undefined values and behaviors " \
