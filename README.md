@@ -33,7 +33,7 @@ More on the concept (in Japanese): <https://zenn.dev/tokium_dev/articles/0b426c6
 Add the following to your Gemfile:
 
 ```ruby
-gem "rspec-undefined", git: "https://github.com/tomoyukiinoue/rspec-undefined.git"
+gem "rspec-undefined", "~> 0.1.1"
 ```
 
 ## Usage
